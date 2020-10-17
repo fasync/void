@@ -26,8 +26,6 @@
 use std::collections::HashMap;
 use std::os::raw::c_uint;
 
-use crate::config;
-
 type ModMask = c_uint;
 type Key = c_uint;
 
@@ -79,3 +77,27 @@ impl KeyCombo {
         KeyCombo { mod_mask, keysym }
     }
 }
+
+pub struct KeyHandlers {
+    // hashmap: HashMap<KeyCombo, Command>,
+}
+
+impl KeyHandlers {
+    pub fn key_combos(&self) -> Vec<&KeyCombo> {
+        self.hashmap.keys().collect()
+    }
+
+    // pub fn get(&self, key_combo: &KeyCombo) -> Option<Command> {
+    //     self.hashmap.get(key_combo).cloned()
+    // }
+}
+
+// impl From<Vec<(Vec<ModKey>, Key, Command)>> for KeyHandlers {
+//     fn from(handlers: Vec<(Vec<ModKey>, Key, Command)>) -> KeyHandlers {
+//         let mut hashmap = HashMap::new();
+//         for (modkeys, keysym, handler) in handlers {
+//             hashmap.insert(KeyCombo::new(&modkeys, keysym), handler);
+//         }
+//         KeyHandlers { hashmap }
+//     }
+// }

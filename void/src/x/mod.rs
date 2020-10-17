@@ -23,10 +23,8 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-mod x;
-
-use x::xcb;
-
-fn main() {
-    xcb::Connection::open();
-}
+// Public
+pub mod keys;
+pub mod xcb;
+// Private
+mod exec;

@@ -22,10 +22,9 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-
 use std::collections::HashMap;
 
-use xcb_util::{ewmh, iccm};
+use xcb_util::{ewmh, icccm};
 
 // Enum
 pub enum WindowType {
@@ -104,20 +103,21 @@ impl Connection {
     // Public
     
     // Open connection to the X Server
-    pub fn open() -> Result<Connection> {
+    
+    pub fn open() -> std::result::Result<Connection, &'static str> {
 	let mut types = HashMap::new();
 	let mut states = HashMap::new();
 	
 	let (conn, id) = xcb::Connection::connect(None).context("[E] Failed to connect to X server")?;
-	let conn = ewmh::Connection::connect(conn).map_err(|e, _| e)?;
-	let root = conn.get_setup().roots().nth(id as usize).ok_or_else(|| format_err("[E] Failed to determine root window"))?.root();
+	let conn = ewmh::Connection::connect(conn).map_err(|(e, _)| e)?;
+	let root = conn.get_setup().roots().nth(id as usize).ok_or_else(|| println!("[E] Failed to determine root window"))?.root();
 	let atoms = Atoms::new(&conn).context("[E] Failed to get atoms")?;
 
 	Ok(Connection {conn, root: Window(root), atoms, id, window_type_lookup: types, window_state_lookup: states})
     }
 
     // Check if the WM is already running. Register Events.
-    pub fn check_wm(&self, handler: &KeyHandler) -> Result<()> {
+    pub fn check_wm(&self, handler: &KeyHandler) -> std::result::Result<(), &'static str> {
 	xcb::change_window_attributes_checked(&self.conn, self.root.get(), &[(xcb::CW_EVENT_MASK, xcb::EVENT_MASK_SUBSTRUCTURE_NOTIFY | xcb::EVENT_MASK_SUBSTRUCTURE_REDIRECT)])
 	    .request_check()
 	    .context("[!] Window manager is already running.")?;
@@ -159,11 +159,11 @@ impl Connection {
     }
 
     pub fn window_map(&self, win: &Window) {
-	xcb::map_window(self.conn, win.get());
+	xcb::map_window(&self.conn, win.get());
     }
 
     pub fn window_unmap(&self, win: &Window) {
-	xcb::unmap_window(self.conn, win.get());
+	xcb::unmap_window(&self.conn, win.get());
     }
 
     pub fn window_geometry(&self, win: &Window) -> (u32, u32) {
@@ -182,12 +182,12 @@ impl Connection {
 	self.conn.flush();
     }
 
-    fn query_protocols(&self, win: &Window) -> Result<Vec<xcb::Atom>> {
-        let reply = icccm::get_wm_protocols(&self.conn, window_id.to_x(), self.atoms.WM_PROTOCOLS).get_reply()?;
+    fn query_protocols(&self, win: &Window) -> std::result::Result<Vec<xcb::Atom>, &'static str> {
+        let reply = icccm::get_wm_protocols(&self.conn, win.get(), self.atoms.WM_PROTOCOLS).get_reply()?;
         Ok(reply.atoms().to_vec())
     }
 
-    fn get_atom(conn: &xcb::Connection, name: &str) -> Result<xcb::Atom> {
+    fn get_atom(conn: &xcb::Connection, name: &str) -> std::result::Result<xcb::Atom, &'static str> {
 	Ok(xcb::intern_atom(conn, false, name).get_reply()?.atom())
     }
 
