@@ -26,6 +26,8 @@ use std::collections::HashMap;
 
 use xcb_util::{ewmh, icccm};
 
+use crate::x;
+
 // Enum
 pub enum WindowType {
     Desktop,
@@ -77,8 +79,8 @@ macro_rules! atoms {
         }
 
         impl Atoms {
-            pub fn new(conn: &xcb::Connection) -> Result<InternedAtoms> {
-                Ok(InternedAtoms {
+            pub fn new(conn: &xcb::Connection) -> std::result::Result<Atoms, xcb::Error<xcb::ffi::xcb_generic_error_t>> {
+                Ok(Atoms {
                     $(
                         $name: Connection::intern_atom(conn, stringify!($name))?
                     ),*
@@ -104,23 +106,22 @@ impl Connection {
     
     // Open connection to the X Server
     
-    pub fn open() -> std::result::Result<Connection, &'static str> {
+    pub fn open() -> std::result::Result<Connection, xcb::Error<xcb::ffi::xcb_generic_error_t>> {
 	let mut types = HashMap::new();
 	let mut states = HashMap::new();
 	
-	let (conn, id) = xcb::Connection::connect(None).context("[E] Failed to connect to X server")?;
+	let (conn, id) = xcb::Connection::connect(None)?;
 	let conn = ewmh::Connection::connect(conn).map_err(|(e, _)| e)?;
 	let root = conn.get_setup().roots().nth(id as usize).ok_or_else(|| println!("[E] Failed to determine root window"))?.root();
-	let atoms = Atoms::new(&conn).context("[E] Failed to get atoms")?;
+	let atoms = Atoms::new(&conn)?;
 
 	Ok(Connection {conn, root: Window(root), atoms, id, window_type_lookup: types, window_state_lookup: states})
     }
 
     // Check if the WM is already running. Register Events.
-    pub fn check_wm(&self, handler: &KeyHandler) -> std::result::Result<(), &'static str> {
+    pub fn check_wm(&self, handler: &x::keys::KeyHandlers) -> std::result::Result<(), xcb::Error<xcb::ffi::xcb_generic_error_t>> {
 	xcb::change_window_attributes_checked(&self.conn, self.root.get(), &[(xcb::CW_EVENT_MASK, xcb::EVENT_MASK_SUBSTRUCTURE_NOTIFY | xcb::EVENT_MASK_SUBSTRUCTURE_REDIRECT)])
-	    .request_check()
-	    .context("[!] Window manager is already running.")?;
+	    .request_check()?;
 	Ok(())
     }
 
@@ -153,7 +154,7 @@ impl Connection {
 	    (xcb::CONFIG_WINDOW_X as u32, x),
 	    (xcb::CONFIG_WINDOW_Y as u32, y),
 	    (xcb::CONFIG_WINDOW_WIDTH as u32, width),
-	    (xcb::CONFIG_WINDOW_HEIGHT as u32, height)
+	    (xcb::CONFIG_WINDOW_HEIGHT as u32, height),
 	];
 	xcb::configure_window(&self.conn, win.get(), &val);
     }
@@ -182,12 +183,12 @@ impl Connection {
 	self.conn.flush();
     }
 
-    fn query_protocols(&self, win: &Window) -> std::result::Result<Vec<xcb::Atom>, &'static str> {
+    fn query_protocols(&self, win: &Window) -> std::result::Result<Vec<xcb::Atom>, xcb::Error<xcb::ffi::xcb_generic_error_t>> {
         let reply = icccm::get_wm_protocols(&self.conn, win.get(), self.atoms.WM_PROTOCOLS).get_reply()?;
         Ok(reply.atoms().to_vec())
     }
 
-    fn get_atom(conn: &xcb::Connection, name: &str) -> std::result::Result<xcb::Atom, &'static str> {
+    fn get_atom(conn: &xcb::Connection, name: &str) -> std::result::Result<xcb::Atom, xcb::Error<xcb::ffi::xcb_generic_error_t>> {
 	Ok(xcb::intern_atom(conn, false, name).get_reply()?.atom())
     }
 
