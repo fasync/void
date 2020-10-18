@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright (c) 2020, Florian Büstgens
  * All rights reserved.
  *
@@ -25,6 +25,6 @@
 
 // Public
 pub mod keys;
-pub mod xcb;
+pub mod xserv;
 // Private
 mod exec;

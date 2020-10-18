@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright (c) 2020, Florian Büstgens
  * All rights reserved.
  *
@@ -26,9 +26,13 @@
 use std::collections::HashMap;
 use std::os::raw::c_uint;
 
+use crate::x;
+
 type ModMask = c_uint;
 type Key = c_uint;
 
+#[allow(dead_code)]
+#[derive(Copy, Clone, Debug, PartialEq, Eq, PartialOrd, Ord)]
 pub enum ModKey {
     Shift,
     Lock,
@@ -37,7 +41,7 @@ pub enum ModKey {
     Mod2,
     Mod3,
     Mod4,
-    Mod5
+    Mod5,
 }
 
 impl ModKey {
@@ -66,6 +70,7 @@ impl ModKey {
     }
 }
 
+#[derive(Clone, Debug, Eq, Hash, PartialEq)]
 pub struct KeyCombo {
     pub mod_mask: ModMask,
     pub keysym: Key,
@@ -79,7 +84,7 @@ impl KeyCombo {
 }
 
 pub struct KeyHandlers {
-    // hashmap: HashMap<KeyCombo, Command>,
+    hashmap: HashMap<KeyCombo, x::exec::Exec>,
 }
 
 impl KeyHandlers {
@@ -87,17 +92,17 @@ impl KeyHandlers {
         self.hashmap.keys().collect()
     }
 
-    // pub fn get(&self, key_combo: &KeyCombo) -> Option<Command> {
-    //     self.hashmap.get(key_combo).cloned()
-    // }
+    pub fn get(&self, key_combo: &KeyCombo) -> Option<x::exec::Exec> {
+        self.hashmap.get(key_combo).cloned()
+    }
 }
 
-// impl From<Vec<(Vec<ModKey>, Key, Command)>> for KeyHandlers {
-//     fn from(handlers: Vec<(Vec<ModKey>, Key, Command)>) -> KeyHandlers {
-//         let mut hashmap = HashMap::new();
-//         for (modkeys, keysym, handler) in handlers {
-//             hashmap.insert(KeyCombo::new(&modkeys, keysym), handler);
-//         }
-//         KeyHandlers { hashmap }
-//     }
-// }
+impl From<Vec<(Vec<ModKey>, Key, x::exec::Exec)>> for KeyHandlers {
+    fn from(handlers: Vec<(Vec<ModKey>, Key, x::exec::Exec)>) -> KeyHandlers {
+        let mut hashmap = HashMap::new();
+        for (modkeys, keysym, handler) in handlers {
+            hashmap.insert(KeyCombo::new(&modkeys, keysym), handler);
+        }
+        KeyHandlers { hashmap }
+    }
+}

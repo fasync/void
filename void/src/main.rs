@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright (c) 2020, Florian Büstgens
  * All rights reserved.
  *
@@ -25,8 +25,6 @@
 
 mod x;
 
-use x::xcb;
-
 fn main() {
-    xcb::Connection::open();
+    let conn = x::xserv::Connection::open().expect("E");
 }

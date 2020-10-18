@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright (c) 2020, Florian Büstgens
  * All rights reserved.
  *
@@ -22,3 +22,13 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+
+use std::process::Command;
+
+use crate::x;
+
+pub type Exec = fn() -> Result<(), ()>;
+
+// pub fn window_close() -> Exec {
+
+// }
