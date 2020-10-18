@@ -28,7 +28,7 @@ use xcb_util::{ewmh, icccm};
 
 use crate::x;
 
-type Result<T> = std::result::Result<T, failure::Error>;
+pub type Result<T> = std::result::Result<T, failure::Error>;
 
 // Enum
 pub enum WindowType {
@@ -94,6 +94,14 @@ macro_rules! atoms {
 }
 
 atoms!(WM_DELETE_WINDOW, WM_PROTOCOLS,);
+
+pub enum Event {
+    MapRequest(Window),
+    UnmapNotify(Window),
+    DestroyNotify(Window),
+    KeyPress(x::keys::KeyCombo),
+    EnterNotify(Window),
+}
 
 pub struct Connection {
     conn: ewmh::Connection,

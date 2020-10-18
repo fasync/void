@@ -22,3 +22,48 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+
+use crate::x;
+
+use x11::keysym::*;
+
+macro_rules! keys {
+    [ $( ([$( $mod:ident ),+], $key:ident, $cmd:expr) ),+ $(,)*] => (
+        vec![
+            $( (vec![$( $mod ),+],  $keysym::$key, $cmd) ),+
+        ]
+    )
+}
+
+pub struct Config {
+    space: u16,
+    modkey: x::keys::ModKey,
+}
+
+impl Config {
+    pub fn new() -> Config {
+        Config {
+            space: 2,
+            modkey: x::keys::ModKey::Mod4,
+        }
+    }
+
+    pub fn register_keys(&self) -> () {
+        let shift = x::keys::ModKey::Shift;
+        let modkey = self.modkey;
+
+        // Key Config goes here.
+        keys![
+            // Main Keys
+            ([modkey, shift], XK_c, exec::focus_close()),
+            ([modkey], XK_j, exec::focus_next()),
+            ([modkey], XK_k, exec::focus_previous()),
+            ([modkey, shift], XK_j, exec::move_next()),
+            ([modkey, shift], XK_k, exec::move_previous()),
+            ([modkey, shift], XK_t, exec::change_layout_next()),
+            // Custom Keys
+            ([modkey, shift], XK_Return, exec::spawn("stc")),
+            ([modkey, shift], XK_d, exec::spawn("stc -c ranger")),
+        ];
+    }
+}

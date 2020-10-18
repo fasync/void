@@ -23,17 +23,6 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-use std::process::Command;
-
-use crate::x;
-
-pub fn focus_close() -> () {}
-pub fn focus_next() -> () {}
-pub fn focus_previous() -> () {}
-pub fn move_next() -> () {}
-pub fn move_previous() -> () {}
-pub fn change_layout_next() -> () {}
-pub fn spawn(proc: &str) -> std::io::Result<()> {
-    std::process::Command::new(proc).spawn()?;
-    Ok(())
-}
+// Public
+pub mod tile;
+// Private

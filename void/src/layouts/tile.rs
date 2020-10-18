@@ -23,17 +23,22 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-use std::process::Command;
+use std::collections::HashMap;
 
 use crate::x;
 
-pub fn focus_close() -> () {}
-pub fn focus_next() -> () {}
-pub fn focus_previous() -> () {}
-pub fn move_next() -> () {}
-pub fn move_previous() -> () {}
-pub fn change_layout_next() -> () {}
-pub fn spawn(proc: &str) -> std::io::Result<()> {
-    std::process::Command::new(proc).spawn()?;
-    Ok(())
+pub struct TileLayout {
+    master: HashMap<u32, x::xserv::Window>,
+    slave: HashMap<u32, x::xserv::Window>,
+    space: u16,
+}
+
+impl TileLayout {
+    pub fn new(space: u16) -> TileLayout {
+        TileLayout {
+            master: HashMap::new(),
+            slave: HashMap::new(),
+            space,
+        }
+    }
 }
