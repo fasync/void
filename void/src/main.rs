@@ -37,15 +37,15 @@ fn main() {
 
     conn.check_wm(keys.into());
 
-    let event_loop_connection = self.connection.clone();
-    let event_loop = event_loop_connection.get_event_loop();
-    for event in event_loop {
-        match event {
-            x::xserv::Event::MapRequest(window_id) => self.on_map_request(window_id),
-            x::xserv::Event::UnmapNotify(window_id) => self.on_unmap_notify(&window_id),
-            x::xserv::Event::DestroyNotify(window_id) => self.on_destroy_notify(&window_id),
-            x::xserv::Event::KeyPress(key) => self.on_key_press(key),
-            x::xserv::Event::EnterNotify(window_id) => self.on_enter_notify(&window_id),
-        }
-    }
+    // let event_loop = event_loop_connection.get_event_loop();
+
+    // for event in event_loop {
+    //     match event {
+    //         x::xserv::Event::MapRequest(window_id) => on_map_request(window_id),
+    //         x::xserv::Event::UnmapNotify(window_id) => self.on_unmap_notify(&window_id),
+    //         x::xserv::Event::DestroyNotify(window_id) => self.on_destroy_notify(&window_id),
+    //         x::xserv::Event::KeyPress(key) => self.on_key_press(key),
+    //         x::xserv::Event::EnterNotify(window_id) => self.on_enter_notify(&window_id),
+    //     }
+    // }
 }

@@ -25,12 +25,10 @@
 
 use crate::x;
 
-use x11::keysym::*;
-
 macro_rules! keys {
-    [ $( ([$( $mod:ident ),+], $key:ident, $cmd:expr) ),+ $(,)*] => (
+    [ $( ([$( $mod:ident ),*], $key:ident, $cmd:expr) ),+ $(,)*] => (
         vec![
-            $( (vec![$( $mod ),+],  $keysym::$key, $cmd) ),+
+            $( (vec![$( $mod ),*],  x11::keysym::$key, $cmd) ),+
         ]
     )
 }
@@ -55,15 +53,23 @@ impl Config {
         // Key Config goes here.
         keys![
             // Main Keys
-            ([modkey, shift], XK_c, exec::focus_close()),
-            ([modkey], XK_j, exec::focus_next()),
-            ([modkey], XK_k, exec::focus_previous()),
-            ([modkey, shift], XK_j, exec::move_next()),
-            ([modkey, shift], XK_k, exec::move_previous()),
-            ([modkey, shift], XK_t, exec::change_layout_next()),
+            ([modkey, shift], XK_c, x::exec::focus_close()),
+            ([modkey], XK_j, x::exec::focus_next()),
+            ([modkey], XK_k, x::exec::focus_previous()),
+            ([modkey, shift], XK_j, x::exec::move_next()),
+            ([modkey, shift], XK_k, x::exec::move_previous()),
+            ([modkey, shift], XK_t, x::exec::change_layout_next()),
             // Custom Keys
-            ([modkey, shift], XK_Return, exec::spawn("stc")),
-            ([modkey, shift], XK_d, exec::spawn("stc -c ranger")),
+            (
+                [modkey, shift],
+                XK_Return,
+                x::exec::spawn("stc").expect("[E] Could not start stc.")
+            ),
+            (
+                [modkey, shift],
+                XK_d,
+                x::exec::spawn("stc -c ranger").expect("[E] Could not start ranger."),
+            )
         ];
     }
 }

@@ -27,4 +27,4 @@
 pub mod keys;
 pub mod xserv;
 // Private
-mod exec;
+pub mod exec;
