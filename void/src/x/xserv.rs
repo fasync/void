@@ -84,7 +84,7 @@ macro_rules! atoms {
             pub fn new(conn: &xcb::Connection) -> Result<Atoms> {
                 Ok(Atoms {
                     $(
-                        $name: Connection::iatom(conn, stringify!($name))?
+                        $name: Connection::get_atom(conn, stringify!($name))?
                     ),*
                 })
             }
@@ -230,10 +230,6 @@ impl Connection {
     }
 
     fn get_atom(conn: &xcb::Connection, name: &str) -> Result<xcb::Atom> {
-        Ok(xcb::intern_atom(conn, false, name).get_reply()?.atom())
-    }
-
-    fn iatom(conn: &xcb::Connection, name: &str) -> Result<xcb::Atom> {
         Ok(xcb::intern_atom(conn, false, name).get_reply()?.atom())
     }
 }
