@@ -24,6 +24,7 @@
  */
 use std::collections::HashMap;
 
+use xcb_util::keysyms::KeySymbols;
 use xcb_util::{ewmh, icccm};
 
 use crate::x;
@@ -95,14 +96,6 @@ macro_rules! atoms {
 
 atoms!(WM_DELETE_WINDOW, WM_PROTOCOLS,);
 
-pub enum Event {
-    MapRequest(Window),
-    UnmapNotify(Window),
-    DestroyNotify(Window),
-    KeyPress(x::keys::KeyCombo),
-    EnterNotify(Window),
-}
-
 pub struct Connection {
     conn: ewmh::Connection,
     root: Window,
@@ -110,6 +103,14 @@ pub struct Connection {
     id: i32,
     window_type_lookup: HashMap<xcb::Atom, WindowType>,
     window_state_lookup: HashMap<xcb::Atom, WindowState>,
+}
+
+pub enum Event {
+    MapRequest(Window),
+    UnmapNotify(Window),
+    DestroyNotify(Window),
+    KeyPress(x::keys::KeyCombo),
+    EnterNotify(Window),
 }
 
 impl Connection {
@@ -215,7 +216,52 @@ impl Connection {
         (u32::from(reply.width()), u32::from(reply.height()))
     }
 
-    pub fn window_enable_keyevents(&self, win: &Window) {}
+    pub fn window_enable_keyevents(&self, win: &Window, key_handlers: &x::keys::KeyHandlers) {
+        let ksym = KeySymbols::new(&self.conn);
+        for key in key_handlers.key_combos() {
+            match ksym.get_keycode(key.keysym).next() {
+                Some(keycode) => {
+                    xcb::grab_key(
+                        &self.conn,
+                        false,
+                        win.get(),
+                        key.mod_mask as u16,
+                        keycode,
+                        xcb::GRAB_MODE_ASYNC as u8,
+                        xcb::GRAB_MODE_ASYNC as u8,
+                    );
+                }
+                None => println!("[E] Could not get keycode: {}", key.keysym),
+            }
+        }
+    }
+
+    pub fn window_enable_tracking(&self, win: &Window) {
+        let val = [(
+            xcb::CW_EVENT_MASK,
+            xcb::EVENT_MASK_ENTER_WINDOW | xcb::EVENT_MASK_STRUCTURE_NOTIFY,
+        )];
+        xcb::change_window_attributes(&self.conn, win.get(), &val);
+    }
+
+    pub fn window_disable_tracking(&self, win: &Window) {
+        let val = [(xcb::CW_EVENT_MASK, xcb::EVENT_MASK_NO_EVENT)];
+        xcb::change_window_attributes(&self.conn, win.get(), &val);
+    }
+
+    pub fn window_focus(&self, win: &Window) {
+        xcb::set_input_focus(
+            &self.conn,
+            xcb::INPUT_FOCUS_POINTER_ROOT as u8,
+            win.get(),
+            xcb::CURRENT_TIME,
+        );
+        ewmh::set_active_window(&self.conn, self.id, win.get());
+    }
+
+    pub fn window_unfocus(&self) {
+        ewmh::set_active_window(&self.conn, self.id, xcb::NONE);
+    }
 
     // Private
 
