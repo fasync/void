@@ -23,8 +23,16 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-// Public
-pub mod keys;
-pub mod xserv;
-// Private
-pub mod exec;
+use crate::core;
+
+pub struct WM {}
+
+impl WM {
+    // Public
+    pub fn register() {
+        let conn = core::x::Connection::open();
+    }
+
+    // Private
+    fn event_loop() {}
+}

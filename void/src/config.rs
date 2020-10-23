@@ -23,7 +23,7 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-use crate::x;
+use crate::core;
 
 macro_rules! keys {
     [ $( ([$( $mod:ident ),*], $key:ident, $cmd:expr) ),+ $(,)*] => (
@@ -33,43 +33,37 @@ macro_rules! keys {
     )
 }
 
-pub struct Config {
+pub struct Config<'a> {
+    exec: &'a core::exec::Exec<'a>,
     space: u16,
-    modkey: x::keys::ModKey,
+    modkey: core::keys::ModKey,
 }
 
-impl Config {
-    pub fn new() -> Config {
+impl<'a> Config<'a> {
+    pub fn new(exec: &'a core::exec::Exec) -> Config<'a> {
         Config {
+            exec: exec,
             space: 2,
-            modkey: x::keys::ModKey::Mod4,
+            modkey: core::keys::ModKey::Mod4,
         }
     }
 
     pub fn register_keys(&self) -> () {
-        let shift = x::keys::ModKey::Shift;
+        let shift = core::keys::ModKey::Shift;
         let modkey = self.modkey;
 
         // Key Config goes here.
         keys![
             // Main Keys
-            ([modkey, shift], XK_c, x::exec::focus_close()),
-            ([modkey], XK_j, x::exec::focus_next()),
-            ([modkey], XK_k, x::exec::focus_previous()),
-            ([modkey, shift], XK_j, x::exec::move_next()),
-            ([modkey, shift], XK_k, x::exec::move_previous()),
-            ([modkey, shift], XK_t, x::exec::change_layout_next()),
+            ([modkey, shift], XK_c, self.exec.focus_close()),
+            ([modkey], XK_j, self.exec.focus_next()),
+            ([modkey], XK_k, self.exec.focus_previous()),
+            ([modkey, shift], XK_j, self.exec.move_next()),
+            ([modkey, shift], XK_k, self.exec.move_previous()),
+            ([modkey, shift], XK_t, self.exec.change_layout_next()),
             // Custom Keys
-            (
-                [modkey, shift],
-                XK_Return,
-                x::exec::spawn("stc").expect("[E] Could not start stc.")
-            ),
-            (
-                [modkey, shift],
-                XK_d,
-                x::exec::spawn("stc -c ranger").expect("[E] Could not start ranger."),
-            )
+            ([modkey, shift], XK_Return, self.exec.spawn("stc")),
+            ([modkey, shift], XK_d, self.exec.spawn("stc -c ranger"))
         ];
     }
 }

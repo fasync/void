@@ -27,9 +27,32 @@ use std::collections::HashMap;
 use xcb_util::keysyms::KeySymbols;
 use xcb_util::{ewmh, icccm};
 
-use crate::x;
+use crate::core;
 
 pub type Result<T> = std::result::Result<T, failure::Error>;
+
+macro_rules! atoms {
+    ( $( $name:ident ),+ ) => {
+        struct Atoms {
+            $(
+                pub $name: xcb::Atom
+            ),*
+        }
+
+        impl Atoms {
+            pub fn new(conn: &xcb::Connection) -> Result<Atoms> {
+                Ok(Atoms {
+                    $(
+                        $name: Connection::get_atom(conn, stringify!($name))?
+                    ),*
+                })
+            }
+        }
+    };
+    ( $( $name:ident ),+ , ) => (atoms!($( $name ),+);)
+}
+
+atoms!(WM_DELETE_WINDOW, WM_PROTOCOLS,);
 
 // Enum
 pub enum WindowType {
@@ -64,37 +87,16 @@ pub enum WindowState {
     DemandsAttention,
 }
 
+pub enum Event {
+    MapRequest(Window),
+    UnmapNotify(Window),
+    DestroyNotify(Window),
+    KeyPress(x::keys::KeyCombo),
+    EnterNotify(Window),
+}
+
 // Structs
 pub struct Window(xcb::Window);
-
-impl Window {
-    fn get(&self) -> xcb::Window {
-        self.0
-    }
-}
-
-macro_rules! atoms {
-    ( $( $name:ident ),+ ) => {
-        struct Atoms {
-            $(
-                pub $name: xcb::Atom
-            ),*
-        }
-
-        impl Atoms {
-            pub fn new(conn: &xcb::Connection) -> Result<Atoms> {
-                Ok(Atoms {
-                    $(
-                        $name: Connection::get_atom(conn, stringify!($name))?
-                    ),*
-                })
-            }
-        }
-    };
-    ( $( $name:ident ),+ , ) => (atoms!($( $name ),+);)
-}
-
-atoms!(WM_DELETE_WINDOW, WM_PROTOCOLS,);
 
 pub struct Connection {
     conn: ewmh::Connection,
@@ -105,12 +107,41 @@ pub struct Connection {
     window_state_lookup: HashMap<xcb::Atom, WindowState>,
 }
 
-pub enum Event {
-    MapRequest(Window),
-    UnmapNotify(Window),
-    DestroyNotify(Window),
-    KeyPress(x::keys::KeyCombo),
-    EnterNotify(Window),
+// pub struct Workspace<'a> {
+//     name: &'a str,
+//     master: Vec<&'a Window>,
+//     slave: Vec<&'a Window>,
+// }
+
+// Impl
+// impl<'a> Workspace<'a> {
+//     fn push_master(&self, win: &'a Window) {
+//         self.master.push(win);
+//     }
+
+//     fn pop_master(&self) -> &'a Window {
+//         self.master
+//             .first()
+//             .ok_or(|| format_err!("[!] No Windows on master"))
+//             .unwrap()
+//     }
+
+//     fn push_slave(&self, win: &'a Window) {
+//         self.slave.push(win);
+//     }
+
+//     fn pop_slave(&self) -> &'a Window {
+//         self.slave
+//             .first()
+//             .ok_or(|| format_err!("[!] No Windows on slave"))
+//             .unwrap()
+//     }
+// }
+
+impl Window {
+    fn get(&self) -> xcb::Window {
+        self.0
+    }
 }
 
 impl Connection {
@@ -128,7 +159,7 @@ impl Connection {
             .get_setup()
             .roots()
             .nth(id as usize)
-            .ok_or_else(|| failure::format_err!("[E] Failed to determine root window"))?
+            .ok_or_else(|| format_err!("[E] Failed to determine root window"))?
             .root();
         let atoms = Atoms::new(&conn)?;
 
@@ -143,7 +174,7 @@ impl Connection {
     }
 
     // Check if the WM is already running. Register Events.
-    pub fn check_wm(&self, handler: &x::keys::KeyHandlers) -> Result<()> {
+    pub fn check_wm(&self, handler: &core::keys::KeyHandlers) -> Result<()> {
         xcb::change_window_attributes_checked(
             &self.conn,
             self.root.get(),
@@ -216,7 +247,7 @@ impl Connection {
         (u32::from(reply.width()), u32::from(reply.height()))
     }
 
-    pub fn window_enable_keyevents(&self, win: &Window, key_handlers: &x::keys::KeyHandlers) {
+    pub fn window_enable_keyevents(&self, win: &Window, key_handlers: &core::keys::KeyHandlers) {
         let ksym = KeySymbols::new(&self.conn);
         for key in key_handlers.key_combos() {
             match ksym.get_keycode(key.keysym).next() {
@@ -261,6 +292,10 @@ impl Connection {
 
     pub fn window_unfocus(&self) {
         ewmh::set_active_window(&self.conn, self.id, xcb::NONE);
+    }
+
+    pub fn window_get_focused(&self) -> xcb::Window {
+        xcb::get_input_focus(&self.conn).cookie
     }
 
     // Private

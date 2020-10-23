@@ -25,13 +25,27 @@
 
 use std::process::Command;
 
-pub fn focus_close() -> () {}
-pub fn focus_next() -> () {}
-pub fn focus_previous() -> () {}
-pub fn move_next() -> () {}
-pub fn move_previous() -> () {}
-pub fn change_layout_next() -> () {}
-pub fn spawn(proc: &str) -> std::io::Result<()> {
-    Command::new(proc).spawn()?;
-    Ok(())
+use crate::core;
+
+pub struct Exec<'a> {
+    conn: &'a core::x::Connection,
+}
+
+impl<'a> Exec<'a> {
+    pub fn new<'b>(conn: &'a core::x::Connection) -> Exec<'a> {
+        Exec { conn: conn }
+    }
+    pub fn focus_close(&self) {}
+    pub fn focus_next(&self) {}
+    pub fn focus_previous(&self) {}
+    pub fn move_next(&self) {}
+    pub fn move_previous(&self) {}
+    pub fn change_workspace(&self, ws: u16) {}
+    pub fn change_layout_next(&self) {}
+
+    pub fn spawn(&self, proc: &str) {
+        let cmd = Command::new(proc).spawn().ok();
+        cmd.ok_or_else(|| format!("[E] Could not spawn process {}", proc))
+            .unwrap();
+    }
 }

@@ -23,26 +23,9 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-mod core;
-mod layouts;
-
-mod config;
-
-fn main() {
-    // Startup
-    let mut conn = core::x::Connection::open().expect("[E] Could not startup.");
-    let exec = core::exec::Exec::new(&conn);
-    let conf = config::Config::new(&exec);
-
-    // let event_loop = event_loop_connection.get_event_loop();
-
-    // for event in event_loop {
-    //     match event {
-    //         x::xserv::Event::MapRequest(window_id) => on_map_request(window_id),
-    //         x::xserv::Event::UnmapNotify(window_id) => self.on_unmap_notify(&window_id),
-    //         x::xserv::Event::DestroyNotify(window_id) => self.on_destroy_notify(&window_id),
-    //         x::xserv::Event::KeyPress(key) => self.on_key_press(key),
-    //         x::xserv::Event::EnterNotify(window_id) => self.on_enter_notify(&window_id),
-    //     }
-    // }
-}
+// Public
+pub mod keys;
+pub mod wm;
+pub mod x;
+// Private
+pub mod exec;

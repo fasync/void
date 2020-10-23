@@ -25,7 +25,7 @@
 
 use std::collections::HashMap;
 
-use crate::x;
+use crate::core;
 
 pub struct TileLayout {
     master: HashMap<u32, x::xserv::Window>,
