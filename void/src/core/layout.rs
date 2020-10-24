@@ -23,39 +23,11 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-use std::collections::HashMap;
+use crate::core::x::Connection;
 
-use crate::core::layout::Layout;
-use crate::core::x;
-
-pub struct TileLayout<'a> {
-    conn: &'a x::Connection,
-    master: HashMap<u32, x::Window>,
-    slave: HashMap<u32, x::Window>,
-    msize: u16,
-    ssize: u16,
-    space: u16,
-}
-
-impl<'a> Layout<'a> for TileLayout<'a> {
-    fn new(space: u16, conn: &'a x::Connection) -> TileLayout {
-        TileLayout {
-            conn: conn,
-            master: HashMap::new(),
-            slave: HashMap::new(),
-            msize: conn.get_screen_width() / 2,
-            ssize: conn.get_screen_width() / 2,
-            space: space,
-        }
-    }
-
-    fn inc_msize(&mut self, size: u16) {
-        self.msize += size;
-    }
-
-    fn inc_ssize(&mut self, size: u16) {
-        self.ssize += size;
-    }
-
-    fn render(&self) {}
+pub trait Layout<'a> {
+    fn new(space: u16, conn: &'a Connection) -> Self;
+    fn inc_msize(&mut self, size: u16);
+    fn inc_ssize(&mut self, size: u16);
+    fn render(&self);
 }

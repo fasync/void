@@ -24,10 +24,12 @@
  */
 use std::collections::HashMap;
 
+use xcb::randr;
 use xcb_util::keysyms::KeySymbols;
 use xcb_util::{ewmh, icccm};
 
-use crate::core;
+use crate::core::keys;
+use crate::core::layout::Layout;
 
 pub type Result<T> = std::result::Result<T, failure::Error>;
 
@@ -91,7 +93,7 @@ pub enum Event {
     MapRequest(Window),
     UnmapNotify(Window),
     DestroyNotify(Window),
-    KeyPress(x::keys::KeyCombo),
+    KeyPress(keys::KeyCombo),
     EnterNotify(Window),
 }
 
@@ -107,11 +109,14 @@ pub struct Connection {
     window_state_lookup: HashMap<xcb::Atom, WindowState>,
 }
 
-// pub struct Workspace<'a> {
-//     name: &'a str,
-//     master: Vec<&'a Window>,
-//     slave: Vec<&'a Window>,
-// }
+pub struct EventLoop<'a> {
+    conn: &'a Connection,
+}
+
+pub struct Workspace<'a, T: Layout<'a>> {
+    name: &'a str,
+    layout: T,
+}
 
 // Impl
 // impl<'a> Workspace<'a> {
@@ -159,7 +164,7 @@ impl Connection {
             .get_setup()
             .roots()
             .nth(id as usize)
-            .ok_or_else(|| format_err!("[E] Failed to determine root window"))?
+            .ok_or_else(|| failure::format_err!("[E] Failed to determine root window"))?
             .root();
         let atoms = Atoms::new(&conn)?;
 
@@ -174,7 +179,7 @@ impl Connection {
     }
 
     // Check if the WM is already running. Register Events.
-    pub fn check_wm(&self, handler: &core::keys::KeyHandlers) -> Result<()> {
+    pub fn check_wm(&self, handler: &keys::KeyHandlers) -> Result<()> {
         xcb::change_window_attributes_checked(
             &self.conn,
             self.root.get(),
@@ -247,7 +252,7 @@ impl Connection {
         (u32::from(reply.width()), u32::from(reply.height()))
     }
 
-    pub fn window_enable_keyevents(&self, win: &Window, key_handlers: &core::keys::KeyHandlers) {
+    pub fn window_enable_keyevents(&self, win: &Window, key_handlers: &keys::KeyHandlers) {
         let ksym = KeySymbols::new(&self.conn);
         for key in key_handlers.key_combos() {
             match ksym.get_keycode(key.keysym).next() {
@@ -294,8 +299,13 @@ impl Connection {
         ewmh::set_active_window(&self.conn, self.id, xcb::NONE);
     }
 
-    pub fn window_get_focused(&self) -> xcb::Window {
-        xcb::get_input_focus(&self.conn).cookie
+    pub fn window_focused(&self) {}
+
+    pub fn get_screen_width(&self) -> u16 {
+        randr::get_screen_size_range(&self.conn, self.window_root().get())
+            .get_reply()
+            .unwrap()
+            .max_width()
     }
 
     // Private

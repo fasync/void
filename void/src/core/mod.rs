@@ -24,8 +24,7 @@
  */
 
 // Public
-pub mod keys;
-pub mod wm;
-pub mod x;
-// Private
 pub mod exec;
+pub mod keys;
+pub mod layout;
+pub mod x;

@@ -10,7 +10,7 @@ build = "build.rs"
 
 [dependencies]
 x11 = "2.18"
-xcb = "0.8"
+xcb = { version = "0.8", features = ["randr"] }
 xcb-util = { version = "0.2", features = ["ewmh", "icccm", "keysyms"] }
 failure = "0.1.8"
 

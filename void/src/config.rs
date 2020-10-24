@@ -23,7 +23,8 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-use crate::core;
+use crate::core::exec::Exec;
+use crate::core::keys;
 
 macro_rules! keys {
     [ $( ([$( $mod:ident ),*], $key:ident, $cmd:expr) ),+ $(,)*] => (
@@ -34,22 +35,22 @@ macro_rules! keys {
 }
 
 pub struct Config<'a> {
-    exec: &'a core::exec::Exec<'a>,
+    exec: &'a Exec<'a>,
     space: u16,
-    modkey: core::keys::ModKey,
+    modkey: keys::ModKey,
 }
 
 impl<'a> Config<'a> {
-    pub fn new(exec: &'a core::exec::Exec) -> Config<'a> {
+    pub fn new(exec: &'a Exec) -> Config<'a> {
         Config {
             exec: exec,
             space: 2,
-            modkey: core::keys::ModKey::Mod4,
+            modkey: keys::ModKey::Mod4,
         }
     }
 
     pub fn register_keys(&self) -> () {
-        let shift = core::keys::ModKey::Shift;
+        let shift = keys::ModKey::Shift;
         let modkey = self.modkey;
 
         // Key Config goes here.

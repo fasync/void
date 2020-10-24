@@ -25,14 +25,14 @@
 
 use std::process::Command;
 
-use crate::core;
+use crate::core::x::Connection;
 
 pub struct Exec<'a> {
-    conn: &'a core::x::Connection,
+    conn: &'a Connection,
 }
 
 impl<'a> Exec<'a> {
-    pub fn new<'b>(conn: &'a core::x::Connection) -> Exec<'a> {
+    pub fn new<'b>(conn: &'a Connection) -> Exec<'a> {
         Exec { conn: conn }
     }
     pub fn focus_close(&self) {}

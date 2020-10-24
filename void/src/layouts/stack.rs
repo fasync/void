@@ -28,7 +28,7 @@ use std::collections::HashMap;
 use crate::core::layout::Layout;
 use crate::core::x;
 
-pub struct TileLayout<'a> {
+pub struct StackLayout<'a> {
     conn: &'a x::Connection,
     master: HashMap<u32, x::Window>,
     slave: HashMap<u32, x::Window>,
@@ -37,25 +37,21 @@ pub struct TileLayout<'a> {
     space: u16,
 }
 
-impl<'a> Layout<'a> for TileLayout<'a> {
+impl<'a> Layout<'a> for StackLayout<'a> {
     fn new(space: u16, conn: &'a x::Connection) -> TileLayout {
         TileLayout {
             conn: conn,
             master: HashMap::new(),
             slave: HashMap::new(),
-            msize: conn.get_screen_width() / 2,
-            ssize: conn.get_screen_width() / 2,
+            msize: conn.get_screen_width(),
+            ssize: conn.get_screen_width(),
             space: space,
         }
     }
 
-    fn inc_msize(&mut self, size: u16) {
-        self.msize += size;
-    }
+    fn inc_msize(&mut self, size: u16) {}
 
-    fn inc_ssize(&mut self, size: u16) {
-        self.ssize += size;
-    }
+    fn inc_ssize(&mut self, size: u16) {}
 
     fn render(&self) {}
 }
