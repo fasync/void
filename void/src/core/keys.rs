@@ -86,6 +86,12 @@ pub struct KeyHandlers {
 }
 
 impl KeyHandlers {
+    pub fn new() -> KeyHandlers {
+        KeyHandlers {
+            hashmap: HashMap::new(),
+        }
+    }
+
     pub fn key_combos(&self) -> Vec<&KeyCombo> {
         self.hashmap.keys().collect()
     }

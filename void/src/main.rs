@@ -30,9 +30,18 @@ mod config;
 
 fn main() {
     // Startup
-    let mut conn = core::x::Connection::open().expect("[E] Could not startup.");
+    let mut conn = core::x::Connection::open().expect("[E] Could not open connection");
     let exec = core::exec::Exec::new(&conn);
     let conf = config::Config::new(&exec);
+    let keys = core::keys::KeyHandlers::new();
+
+    conn.check_wm(&keys).expect("[E] WM is already running.");
+
+    let exist_win = conn
+        .top_level_windows()
+        .expect("[E] Could not determine existing windows.");
+
+    for win in exist_win {}
 
     // let event_loop = event_loop_connection.get_event_loop();
 
