@@ -24,6 +24,10 @@
  */
 
 fn main() {
-    // We need that to build under FreeBSD
-    println!(r"cargo:rustc-link-search=/usr/local/lib/");
+    match std::env::consts::OS {
+        "freebsd" => println!(r"cargo:rustc-link-search=/usr/local/lib/"),
+        "openbsd" => println!(r"cargo:rustc-link-search=/usr/X11R6/lib/"),
+        "linux" => println!(r"cargo:rustc-link-search=/usr/lib/"),
+        _ => panic!("Your OS is not supported!"),
+    }
 }

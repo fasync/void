@@ -339,6 +339,10 @@ impl Connection {
 }
 
 impl<'a> EventLoop<'a> {
+    pub fn new(conn: &'a Connection) -> Result<EventLoop<'a>> {
+        Ok(EventLoop { conn: conn })
+    }
+
     fn on_configure_request(&self, event: &xcb::ConfigureRequestEvent) -> Option<Event> {
         let val = vec![
             (xcb::CONFIG_WINDOW_X as u16, event.x() as u32),

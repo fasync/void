@@ -28,9 +28,23 @@ mod layouts;
 
 mod config;
 
+use crate::core::x;
+
+fn pledge() {}
+
+fn capsicum() {}
+
 fn main() {
+    // Setup
+    match std::env::consts::OS {
+        "openbsd" => pledge(),
+        "freebsd" => capsicum(),
+        _ => (),
+    }
+
     // Startup
-    let mut conn = core::x::Connection::open().expect("[E] Could not open connection");
+    let mut conn = x::Connection::open().expect("[E] Could not open connection");
+    let mut event_conn = x::EventLoop::new(&conn);
     let exec = core::exec::Exec::new(&conn);
     let conf = config::Config::new(&exec);
     let keys = core::keys::KeyHandlers::new();
@@ -43,15 +57,15 @@ fn main() {
 
     for win in exist_win {}
 
-    // let event_loop = event_loop_connection.get_event_loop();
+    //let event_loop = event_conn.get_event_loop();
 
-    // for event in event_loop {
-    //     match event {
-    //         x::xserv::Event::MapRequest(window_id) => on_map_request(window_id),
-    //         x::xserv::Event::UnmapNotify(window_id) => self.on_unmap_notify(&window_id),
-    //         x::xserv::Event::DestroyNotify(window_id) => self.on_destroy_notify(&window_id),
-    //         x::xserv::Event::KeyPress(key) => self.on_key_press(key),
-    //         x::xserv::Event::EnterNotify(window_id) => self.on_enter_notify(&window_id),
-    //     }
-    // }
+    for event in event_conn {
+        // match event {
+        //     // x::Event::MapRequest(window_id) => on_map_request(window_id),
+        //     // x::Event::UnmapNotify(window_id) => self.on_unmap_notify(&window_id),
+        //     // x::Event::DestroyNotify(window_id) => self.on_destroy_notify(&window_id),
+        //     // x::Event::KeyPress(key) => self.on_key_press(key),
+        //     // x::Event::EnterNotify(window_id) => self.on_enter_notify(&window_id),
+        // }
+    }
 }
