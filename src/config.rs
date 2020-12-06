@@ -23,48 +23,30 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-use crate::core::exec::Exec;
+use crate::core::command::Commands;
 use crate::core::keys;
 
-macro_rules! keys {
-    [ $( ([$( $mod:ident ),*], $key:ident, $cmd:expr) ),+ $(,)*] => (
-        vec![
-            $( (vec![$( $mod ),*],  x11::keysym::$key, $cmd) ),+
-        ]
-    )
-}
-
 pub struct Config<'a> {
-    exec: &'a Exec<'a>,
-    space: u16,
     modkey: keys::ModKey,
+    ctrl: Commands,
 }
 
 impl<'a> Config<'a> {
-    pub fn new(exec: &'a Exec) -> Config<'a> {
+    fn new() -> Config<'a> {
         Config {
-            exec: exec,
-            space: 2,
+            // Set your ModKey here!
             modkey: keys::ModKey::Mod4,
+            ctrl: Commands::new(),
         }
     }
 
-    pub fn register_keys(&self) -> () {
-        let shift = keys::ModKey::Shift;
-        let modkey = self.modkey;
+    fn get_ctrl(self) -> &'a Commands {
+        &self.ctrl
+    }
 
-        // Key Config goes here.
-        keys![
-            // Main Keys
-            ([modkey, shift], XK_c, self.exec.focus_close()),
-            ([modkey], XK_j, self.exec.focus_next()),
-            ([modkey], XK_k, self.exec.focus_previous()),
-            ([modkey, shift], XK_j, self.exec.move_next()),
-            ([modkey, shift], XK_k, self.exec.move_previous()),
-            ([modkey, shift], XK_t, self.exec.change_layout_next()),
-            // Custom Keys
-            ([modkey, shift], XK_Return, self.exec.spawn("stc")),
-            ([modkey, shift], XK_d, self.exec.spawn("stc -c ranger"))
-        ];
+    // Set your keycombos here!
+    fn wire(self) {
+        self.ctrl.add(self.modkey, "enter", self.ctrl.exec("stc"));
+        self.ctrl.add(self.modkey, "p", self.ctrl.exec("dmenu"));
     }
 }

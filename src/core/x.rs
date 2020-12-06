@@ -22,14 +22,17 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+// crate
+use crate::core::keys;
+use crate::core::layout::Layout;
+
+// std
 use std::collections::HashMap;
 
+// thirdparty
 use xcb::randr;
 use xcb_util::keysyms::KeySymbols;
 use xcb_util::{ewmh, icccm};
-
-use crate::core::keys;
-use crate::core::layout::Layout;
 
 // Types
 pub type Result<T> = std::result::Result<T, failure::Error>;
@@ -91,14 +94,6 @@ pub enum WindowState {
     DemandsAttention,
 }
 
-pub enum Event {
-    MapRequest(Window),
-    UnmapNotify(Window),
-    DestroyNotify(Window),
-    KeyPress(keys::KeyCombo),
-    EnterNotify(Window),
-}
-
 // Structs
 pub struct Window(xcb::Window);
 
@@ -110,41 +105,6 @@ pub struct Connection {
     window_type_lookup: HashMap<xcb::Atom, WindowType>,
     window_state_lookup: HashMap<xcb::Atom, WindowState>,
 }
-
-pub struct EventLoop<'a> {
-    conn: &'a Connection,
-}
-
-pub struct Workspace<'a, T: Layout<'a>> {
-    name: &'a str,
-    layout: T,
-}
-
-// Impl
-
-// impl<'a> Workspace<'a> {
-//     fn push_master(&self, win: &'a Window) {
-//         self.master.push(win);
-//     }
-
-//     fn pop_master(&self) -> &'a Window {
-//         self.master
-//             .first()
-//             .ok_or(|| format_err!("[!] No Windows on master"))
-//             .unwrap()
-//     }
-
-//     fn push_slave(&self, win: &'a Window) {
-//         self.slave.push(win);
-//     }
-
-//     fn pop_slave(&self) -> &'a Window {
-//         self.slave
-//             .first()
-//             .ok_or(|| format_err!("[!] No Windows on slave"))
-//             .unwrap()
-//     }
-// }
 
 impl Window {
     fn get(&self) -> xcb::Window {
@@ -335,97 +295,5 @@ impl Connection {
 
     fn get_atom(conn: &xcb::Connection, name: &str) -> Result<xcb::Atom> {
         Ok(xcb::intern_atom(conn, false, name).get_reply()?.atom())
-    }
-}
-
-impl<'a> EventLoop<'a> {
-    pub fn new(conn: &'a Connection) -> Result<EventLoop<'a>> {
-        Ok(EventLoop { conn: conn })
-    }
-
-    fn on_configure_request(&self, event: &xcb::ConfigureRequestEvent) -> Option<Event> {
-        let val = vec![
-            (xcb::CONFIG_WINDOW_X as u16, event.x() as u32),
-            (xcb::CONFIG_WINDOW_Y as u16, event.y() as u32),
-            (xcb::CONFIG_WINDOW_WIDTH as u16, u32::from(event.width())),
-            (xcb::CONFIG_WINDOW_HEIGHT as u16, u32::from(event.height())),
-            (
-                xcb::CONFIG_WINDOW_BORDER_WIDTH as u16,
-                u32::from(event.border_width()),
-            ),
-            (xcb::CONFIG_WINDOW_SIBLING as u16, event.sibling() as u32),
-            (
-                xcb::CONFIG_WINDOW_STACK_MODE as u16,
-                u32::from(event.stack_mode()),
-            ),
-        ];
-        let filter_val: Vec<_> = val
-            .into_iter()
-            .filter(|&(mask, _)| mask & event.value_mask() != 0)
-            .collect();
-
-        xcb::configure_window(&self.conn.conn, event.window(), &filter_val);
-
-        None
-    }
-
-    fn on_destroy_notify(&self, event: &xcb::DestroyNotifyEvent) -> Option<Event> {
-        Some(Event::DestroyNotify(Window(event.window())))
-    }
-
-    fn on_key_press(&self, event: &xcb::KeyPressEvent) -> Option<Event> {
-        let symbols = KeySymbols::new(&self.conn.conn);
-        let keysym = symbols.press_lookup_keysym(event, 0);
-        let mod_mask = u32::from(event.state());
-        let key = keys::KeyCombo { mod_mask, keysym };
-        Some(Event::KeyPress(key))
-    }
-
-    fn on_map_request(&self, event: &xcb::MapRequestEvent) -> Option<Event> {
-        Some(Event::MapRequest(Window(event.window())))
-    }
-
-    fn on_unmap_notify(&self, event: &xcb::UnmapNotifyEvent) -> Option<Event> {
-        if event.event() != self.conn.window_root().get() {
-            Some(Event::UnmapNotify(Window(event.window())))
-        } else {
-            None
-        }
-    }
-
-    fn on_enter_notify(&self, event: &xcb::EnterNotifyEvent) -> Option<Event> {
-        Some(Event::EnterNotify(Window(event.event())))
-    }
-}
-
-impl<'a> Iterator for EventLoop<'a> {
-    type Item = Event;
-
-    fn next(&mut self) -> Option<Self::Item> {
-        loop {
-            self.conn.flush();
-
-            let event = self
-                .conn
-                .conn
-                .wait_for_event()
-                .expect("[E] IO error while waiting for event.");
-
-            unsafe {
-                let propagate = match event.response_type() {
-                    xcb::CONFIGURE_REQUEST => self.on_configure_request(xcb::cast_event(&event)),
-                    xcb::MAP_REQUEST => self.on_map_request(xcb::cast_event(&event)),
-                    xcb::UNMAP_NOTIFY => self.on_unmap_notify(xcb::cast_event(&event)),
-                    xcb::DESTROY_NOTIFY => self.on_destroy_notify(xcb::cast_event(&event)),
-                    xcb::KEY_PRESS => self.on_key_press(xcb::cast_event(&event)),
-                    xcb::ENTER_NOTIFY => self.on_enter_notify(xcb::cast_event(&event)),
-                    _ => None,
-                };
-
-                if let Some(propagate_event) = propagate {
-                    return Some(propagate_event);
-                }
-            }
-        }
     }
 }

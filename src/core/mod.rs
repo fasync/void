@@ -24,7 +24,9 @@
  */
 
 // Public
-pub mod exec;
+pub mod command;
+pub mod event;
 pub mod keys;
 pub mod layout;
+pub mod workspace;
 pub mod x;

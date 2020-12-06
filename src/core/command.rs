@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, Florian Büstgens
+ * Copyright (c) 2020, Florian Buestgens
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -11,10 +11,10 @@
  *        this list of conditions and the following disclaimer in the
  *        documentation and/or other materials provided with the distribution.
  *
- * THIS SOFTWARE IS PROVIDED BY <copyright holder> ''AS IS'' AND ANY
+ * THIS SOFTWARE IS PROVIDED BY Florian Buestgens ''AS IS'' AND ANY
  * EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
  * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
- * DISCLAIMED. IN NO EVENT SHALL <copyright holder> BE LIABLE FOR ANY
+ * DISCLAIMED. IN NO EVENT SHALL Florian Buestgens BE LIABLE FOR ANY
  * DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
  * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
  * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
@@ -23,29 +23,39 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+use crate::core::keys;
+use std::collections::HashMap;
 use std::process::Command;
 
-use crate::core::x::Connection;
+type Callback = fn();
 
-pub struct Exec<'a> {
-    conn: &'a Connection,
+pub struct Commands {
+    keybinds: HashMap<keys::KeyCombo, Callback>,
 }
 
-impl<'a> Exec<'a> {
-    pub fn new<'b>(conn: &'a Connection) -> Exec<'a> {
-        Exec { conn: conn }
+impl Commands {
+    fn new() -> Commands {
+        Commands {
+            keybinds: HashMap::new(),
+        }
     }
-    pub fn focus_close(&self) {}
-    pub fn focus_next(&self) {}
-    pub fn focus_previous(&self) {}
-    pub fn move_next(&self) {}
-    pub fn move_previous(&self) {}
-    pub fn change_workspace(&self, ws: u16) {}
-    pub fn change_layout_next(&self) {}
 
-    pub fn spawn(&self, proc: &str) {
-        let cmd = Command::new(proc).spawn().ok();
-        cmd.ok_or_else(|| format!("[E] Could not spawn process {}", proc))
-            .unwrap();
+    fn add(self, modkey: keys::ModKey, keysym: keys::Key, func: ()) {
+        self.keybinds.insert(
+            keys::KeyCombo {
+                modmask: self.modkey.mask(),
+                keysym,
+            },
+            func,
+        );
+    }
+
+    fn lookup(self, keycombo: keys::KeyCombo) {
+        let func = self.keybinds.get(keycombo);
+        func;
+    }
+
+    fn exec(self, cmd: str) {
+        Command::new(cmd).expect(cmd + " failed to start.");
     }
 }

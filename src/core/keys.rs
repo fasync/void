@@ -26,8 +26,8 @@
 use std::collections::HashMap;
 use std::os::raw::c_uint;
 
-type ModMask = c_uint;
-type Key = c_uint;
+pub type ModMask = c_uint;
+pub type Key = c_uint;
 
 #[allow(dead_code)]
 #[derive(Copy, Clone, Debug, PartialEq, Eq, PartialOrd, Ord)]
@@ -70,14 +70,17 @@ impl ModKey {
 
 #[derive(Clone, Debug, Eq, Hash, PartialEq)]
 pub struct KeyCombo {
-    pub mod_mask: ModMask,
+    pub modmask: ModMask,
     pub keysym: Key,
 }
 
 impl KeyCombo {
-    fn new(mods: &[ModKey], keysym: Key) -> KeyCombo {
-        let mod_mask = mods.iter().fold(0, |mask, mod_key| mask | mod_key.mask());
-        KeyCombo { mod_mask, keysym }
+    fn new(mods: &[ModKey], keysym_: Key) -> KeyCombo {
+        let modmask_ = mods.iter().fold(0, |mask, mod_key| mask | mod_key.mask());
+        KeyCombo {
+            modmask: modmask_,
+            keysym: keysym_,
+        }
     }
 }
 

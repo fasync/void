@@ -23,30 +23,46 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+mod config;
 mod core;
 mod layouts;
 
-mod config;
+use crate::core::event::Event;
+use crate::core::event::EventLoop;
+use crate::core::x::Connection;
 
-use crate::core::x;
+#[allow(dead_code)]
+#[cfg(target_os = "freebsd")]
+mod _restr {
+    pub use capsicum::{enter, sandboxed};
+}
 
-fn pledge() {}
+#[cfg(target_os = "openbsd")]
+mod _restr {
+    pub use pledge::{pledge, pledge_execpromises, pledge_promises};
+}
 
-fn capsicum() {}
+use _restr::*;
+
+#[cfg(target_os = "freebsd")]
+fn _sandbox() {
+    enter().expect("[E] Could not sandbox voidwm.");
+    assert!(sandboxed(), "[E] Could not sandbox voidwm.");
+}
+
+#[cfg(target_os = "openbsd")]
+fn _sandbox() {
+    pledge_promises![Stdio Exec].unwrap();
+}
 
 fn main() {
     // Setup
-    match std::env::consts::OS {
-        "openbsd" => pledge(),
-        "freebsd" => capsicum(),
-        _ => (),
-    }
+    _sandbox();
 
     // Startup
-    let mut conn = x::Connection::open().expect("[E] Could not open connection");
-    let mut event_conn = x::EventLoop::new(&conn);
-    let exec = core::exec::Exec::new(&conn);
-    let conf = config::Config::new(&exec);
+    let mut conn = Connection::open().expect("[E] Could not open connection");
+    let mut event_conn = EventLoop::new(&conn);
+    let conf = config::Config::new();
     let keys = core::keys::KeyHandlers::new();
 
     conn.check_wm(&keys).expect("[E] WM is already running.");
