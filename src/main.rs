@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, Florian Büstgens
+ * Copyright (c) 2020, Florian Buestgens
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -11,10 +11,10 @@
  *        this list of conditions and the following disclaimer in the
  *        documentation and/or other materials provided with the distribution.
  *
- * THIS SOFTWARE IS PROVIDED BY <copyright holder> ''AS IS'' AND ANY
+ * THIS SOFTWARE IS PROVIDED BY Florian Buestgens ''AS IS'' AND ANY
  * EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
  * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
- * DISCLAIMED. IN NO EVENT SHALL <copyright holder> BE LIABLE FOR ANY
+ * DISCLAIMED. IN NO EVENT SHALL Florian Buestgens BE LIABLE FOR ANY
  * DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
  * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
  * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
@@ -22,7 +22,6 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-
 mod config;
 mod core;
 mod layouts;
@@ -66,22 +65,21 @@ fn main() {
     let keys = core::keys::KeyHandlers::new();
 
     conn.check_wm(&keys).expect("[E] WM is already running.");
+    conf.wire();
 
     let exist_win = conn
         .top_level_windows()
         .expect("[E] Could not determine existing windows.");
 
-    for win in exist_win {}
-
-    //let event_loop = event_conn.get_event_loop();
+    let event_loop = event_conn.get_event_loop();
 
     for event in event_conn {
-        // match event {
-        //     // x::Event::MapRequest(window_id) => on_map_request(window_id),
-        //     // x::Event::UnmapNotify(window_id) => self.on_unmap_notify(&window_id),
-        //     // x::Event::DestroyNotify(window_id) => self.on_destroy_notify(&window_id),
-        //     // x::Event::KeyPress(key) => self.on_key_press(key),
-        //     // x::Event::EnterNotify(window_id) => self.on_enter_notify(&window_id),
-        // }
+        match event {
+            Event::MapRequest(window_id) => conn.on_map_request(window_id),
+            Event::UnmapNotify(window_id) => conn.on_unmap_notify(&window_id),
+            Event::DestroyNotify(window_id) => conn.on_destroy_notify(&window_id),
+            Event::KeyPress(key) => conn.on_key_press(key),
+            Event::EnterNotify(window_id) => conn.on_enter_notify(&window_id),
+        }
     }
 }

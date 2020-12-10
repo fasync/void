@@ -54,7 +54,7 @@ impl ModKey {
             | xcb::MOD_MASK_5
     }
 
-    fn mask(self) -> ModMask {
+    pub fn mask(self) -> ModMask {
         match self {
             ModKey::Shift => xcb::MOD_MASK_SHIFT,
             ModKey::Lock => xcb::MOD_MASK_LOCK,

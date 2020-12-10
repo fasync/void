@@ -23,33 +23,33 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-pub struct Workspace<'a, T: Layout<'a>> {
-    name: &'a str,
-    layout: T,
-}
+// pub struct Workspace<'a, T: Layout<'a>> {
+//     name: &'a str,
+//     layout: T,
+// }
 
-// Impl
+// // Impl
 
-impl<'a> Workspace<'a> {
-    fn push_master(&self, win: &'a Window) {
-        self.master.push(win);
-    }
+// impl<'a> Workspace<'a> {
+//     fn push_master(&self, win: &'a Window) {
+//         self.master.push(win);
+//     }
 
-    fn pop_master(&self) -> &'a Window {
-        self.master
-            .first()
-            .ok_or(|| format_err!("[!] No Windows on master"))
-            .unwrap()
-    }
+//     fn pop_master(&self) -> &'a Window {
+//         self.master
+//             .first()
+//             .ok_or(|| format_err!("[!] No Windows on master"))
+//             .unwrap()
+//     }
 
-    fn push_slave(&self, win: &'a Window) {
-        self.slave.push(win);
-    }
+//     fn push_slave(&self, win: &'a Window) {
+//         self.slave.push(win);
+//     }
 
-    fn pop_slave(&self) -> &'a Window {
-        self.slave
-            .first()
-            .ok_or(|| format_err!("[!] No Windows on slave"))
-            .unwrap()
-    }
-}
+//     fn pop_slave(&self) -> &'a Window {
+//         self.slave
+//             .first()
+//             .ok_or(|| format_err!("[!] No Windows on slave"))
+//             .unwrap()
+//     }
+// }

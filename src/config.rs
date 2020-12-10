@@ -28,25 +28,31 @@ use crate::core::keys;
 
 pub struct Config<'a> {
     modkey: keys::ModKey,
-    ctrl: Commands,
+    ctrl: &'a Commands,
 }
 
 impl<'a> Config<'a> {
-    fn new() -> Config<'a> {
+    pub fn new() -> Config<'a> {
         Config {
             // Set your ModKey here!
             modkey: keys::ModKey::Mod4,
-            ctrl: Commands::new(),
+            ctrl: &Commands::new(),
         }
     }
 
-    fn get_ctrl(self) -> &'a Commands {
+    pub fn get_ctrl(self) -> &'a Commands {
         &self.ctrl
     }
 
     // Set your keycombos here!
-    fn wire(self) {
-        self.ctrl.add(self.modkey, "enter", self.ctrl.exec("stc"));
-        self.ctrl.add(self.modkey, "p", self.ctrl.exec("dmenu"));
+    pub fn wire(self) {
+        self.ctrl
+            .add([self.modkey], "enter", self.ctrl.exec(["stc"]));
+        self.ctrl.add([self.modkey], "p", self.ctrl.exec(["dmenu"]));
+        self.ctrl.add(
+            [self.modkey, keys::ModKey::Shift],
+            "d",
+            self.ctrl.exec(["stc", "-e", "ranger"]),
+        );
     }
 }

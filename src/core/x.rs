@@ -95,10 +95,10 @@ pub enum WindowState {
 }
 
 // Structs
-pub struct Window(xcb::Window);
+pub struct Window(pub xcb::Window);
 
 pub struct Connection {
-    conn: ewmh::Connection,
+    pub conn: ewmh::Connection,
     root: Window,
     atoms: Atoms,
     id: i32,
@@ -107,7 +107,7 @@ pub struct Connection {
 }
 
 impl Window {
-    fn get(&self) -> xcb::Window {
+    pub fn get(&self) -> xcb::Window {
         self.0
     }
 }
@@ -281,12 +281,11 @@ impl Connection {
             .max_width()
     }
 
-    // Private
-
-    fn flush(&self) {
+    pub fn flush(&self) {
         self.conn.flush();
     }
 
+    // Private
     fn query_protocols(&self, win: &Window) -> Result<Vec<xcb::Atom>> {
         let reply =
             icccm::get_wm_protocols(&self.conn, win.get(), self.atoms.WM_PROTOCOLS).get_reply()?;

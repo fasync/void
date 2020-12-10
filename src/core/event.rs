@@ -24,10 +24,12 @@
  */
 // crate
 use crate::core::keys::KeyCombo;
-use crate::core::keys::KeySymbols;
 use crate::core::x::Connection;
 use crate::core::x::Result;
 use crate::core::x::Window;
+
+// thirdparty
+use xcb_util::keysyms::KeySymbols;
 
 // Structs
 pub struct EventLoop<'a> {

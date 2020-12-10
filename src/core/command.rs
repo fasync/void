@@ -34,28 +34,34 @@ pub struct Commands {
 }
 
 impl Commands {
-    fn new() -> Commands {
+    pub fn new() -> Commands {
         Commands {
             keybinds: HashMap::new(),
         }
     }
 
-    fn add(self, modkey: keys::ModKey, keysym: keys::Key, func: ()) {
+    pub fn add(self, modkey: &[keys::ModKey], keysym: keys::Key, func: Callback) {
         self.keybinds.insert(
             keys::KeyCombo {
-                modmask: self.modkey.mask(),
+                modmask: modkey[0].mask(),
                 keysym,
             },
             func,
         );
     }
 
-    fn lookup(self, keycombo: keys::KeyCombo) {
+    pub fn lookup(self, keycombo: &keys::KeyCombo) {
         let func = self.keybinds.get(keycombo);
         func;
     }
 
-    fn exec(self, cmd: str) {
-        Command::new(cmd).expect(cmd + " failed to start.");
+    pub fn exec(self, cmd_str: &[String]) {
+        let cmd = Command::new(cmd_str[0]);
+
+        for elem in cmd_str.iter().skip(1) {
+            cmd.arg(elem);
+        }
+
+        cmd.spawn().expect("Command failed to start.");
     }
 }
