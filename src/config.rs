@@ -45,14 +45,10 @@ impl<'a> Config<'a> {
     }
 
     // Set your keycombos here!
+    #[rustfmt::skip]
     pub fn wire(self) {
-        self.ctrl
-            .add([self.modkey], "enter", self.ctrl.exec(["stc"]));
-        self.ctrl.add([self.modkey], "p", self.ctrl.exec(["dmenu"]));
-        self.ctrl.add(
-            [self.modkey, keys::ModKey::Shift],
-            "d",
-            self.ctrl.exec(["stc", "-e", "ranger"]),
-        );
+        self.ctrl.add(&[self.modkey], "enter", self.ctrl.exec,vec!["stc".to_string()]);
+        self.ctrl.add(&[self.modkey], "p", self.ctrl.exec, vec!["dmenu".to_string()]);
+        self.ctrl.add(&[self.modkey, keys::ModKey::Shift],"d",self.ctrl.exec, vec!["stc".to_string(), "-e".to_string(), "ranger".to_string()]);
     }
 }

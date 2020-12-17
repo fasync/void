@@ -26,9 +26,14 @@ mod config;
 mod core;
 mod layouts;
 
-use crate::core::event::Event;
-use crate::core::event::EventLoop;
+use crate::core::event::{Event, EventLoop};
+use crate::core::keys::{KeyCombo, KeyHandlers};
 use crate::core::x::Connection;
+use crate::core::x::Window;
+
+#[allow(dead_code)]
+#[cfg(target_os = "linux")]
+mod _restr {}
 
 #[allow(dead_code)]
 #[cfg(target_os = "freebsd")]
@@ -42,6 +47,10 @@ mod _restr {
 }
 
 use _restr::*;
+use crate::config::Config;
+
+#[cfg(target_os = "linux")]
+fn _sandbox() {}
 
 #[cfg(target_os = "freebsd")]
 fn _sandbox() {
@@ -59,27 +68,31 @@ fn main() {
     _sandbox();
 
     // Startup
-    let mut conn = Connection::open().expect("[E] Could not open connection");
-    let mut event_conn = EventLoop::new(&conn);
-    let conf = config::Config::new();
-    let keys = core::keys::KeyHandlers::new();
+    let mut conn: Connection = Connection::open().expect("[E] Could not open connection");
+    let mut event_conn: EventLoop = conn.get_event_loop();
+    let conf: Config = config::Config::new();
+    let keys: KeyHandlers = core::keys::KeyHandlers::new();
 
     conn.check_wm(&keys).expect("[E] WM is already running.");
     conf.wire();
 
-    let exist_win = conn
+    let exist_win: Vec<Window> = conn
         .top_level_windows()
         .expect("[E] Could not determine existing windows.");
 
-    let event_loop = event_conn.get_event_loop();
-
     for event in event_conn {
         match event {
-            Event::MapRequest(window_id) => conn.on_map_request(window_id),
-            Event::UnmapNotify(window_id) => conn.on_unmap_notify(&window_id),
-            Event::DestroyNotify(window_id) => conn.on_destroy_notify(&window_id),
-            Event::KeyPress(key) => conn.on_key_press(key),
-            Event::EnterNotify(window_id) => conn.on_enter_notify(&window_id),
-        }
+            Event::MapRequest(window_id) => _map_request(window_id),
+            Event::UnmapNotify(window_id) => _unmap_notify(&window_id),
+            Event::DestroyNotify(window_id) => _destroy_notify(&window_id),
+            Event::KeyPress(key) => _key_press(key),
+            Event::EnterNotify(window_id) => _enter_notify(&window_id),
+        };
     }
 }
+
+fn _map_request(win: Window) {}
+fn _unmap_notify(win: &Window) {}
+fn _destroy_notify(win: &Window) {}
+fn _key_press(key: KeyCombo) {}
+fn _enter_notify(win: &Window) {}

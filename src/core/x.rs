@@ -234,7 +234,7 @@ impl Connection {
                         &self.conn,
                         false,
                         win.get(),
-                        key.mod_mask as u16,
+                        key.modmask as u16,
                         keycode,
                         xcb::GRAB_MODE_ASYNC as u8,
                         xcb::GRAB_MODE_ASYNC as u8,
@@ -283,6 +283,10 @@ impl Connection {
 
     pub fn flush(&self) {
         self.conn.flush();
+    }
+
+    pub fn get_event_loop(&self) -> super::event::EventLoop<'_> {
+        super::event::EventLoop { conn: self }
     }
 
     // Private

@@ -30,7 +30,7 @@ use std::process::Command;
 type Callback = fn();
 
 pub struct Commands {
-    keybinds: HashMap<keys::KeyCombo, Callback>,
+    keybinds: HashMap<keys::KeyCombo, (Callback, Vec<String>)>,
 }
 
 impl Commands {
@@ -40,13 +40,13 @@ impl Commands {
         }
     }
 
-    pub fn add(self, modkey: &[keys::ModKey], keysym: keys::Key, func: Callback) {
+    pub fn add(self, modkey: &[keys::ModKey], keysym: &str, func: Callback, args: Vec<String>) {
         self.keybinds.insert(
             keys::KeyCombo {
                 modmask: modkey[0].mask(),
                 keysym,
             },
-            func,
+            (func, args),
         );
     }
 
@@ -55,8 +55,8 @@ impl Commands {
         func;
     }
 
-    pub fn exec(self, cmd_str: &[String]) {
-        let cmd = Command::new(cmd_str[0]);
+    pub fn exec(self, cmd_str: Vec<String>) {
+        let mut cmd = Command::new(&cmd_str[0]);
 
         for elem in cmd_str.iter().skip(1) {
             cmd.arg(elem);

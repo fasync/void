@@ -51,7 +51,7 @@ impl<'a> EventLoop<'a> {
         Ok(EventLoop { conn })
     }
 
-    fn on_configure_request(&self, event: &xcb::ConfigureRequestEvent) -> Option<Event> {
+    pub fn on_configure_request(&self, event: &xcb::ConfigureRequestEvent) -> Option<Event> {
         let val = vec![
             (xcb::CONFIG_WINDOW_X as u16, event.x() as u32),
             (xcb::CONFIG_WINDOW_Y as u16, event.y() as u32),
@@ -77,11 +77,11 @@ impl<'a> EventLoop<'a> {
         None
     }
 
-    fn on_destroy_notify(&self, event: &xcb::DestroyNotifyEvent) -> Option<Event> {
+    pub fn on_destroy_notify(&self, event: &xcb::DestroyNotifyEvent) -> Option<Event> {
         Some(Event::DestroyNotify(Window(event.window())))
     }
 
-    fn on_key_press(&self, event: &xcb::KeyPressEvent) -> Option<Event> {
+    pub fn on_key_press(&self, event: &xcb::KeyPressEvent) -> Option<Event> {
         let symbols = KeySymbols::new(&self.conn.conn);
         let keysym = symbols.press_lookup_keysym(event, 0);
         let modmask = u32::from(event.state());
@@ -89,11 +89,11 @@ impl<'a> EventLoop<'a> {
         Some(Event::KeyPress(key))
     }
 
-    fn on_map_request(&self, event: &xcb::MapRequestEvent) -> Option<Event> {
+    pub fn on_map_request(&self, event: &xcb::MapRequestEvent) -> Option<Event> {
         Some(Event::MapRequest(Window(event.window())))
     }
 
-    fn on_unmap_notify(&self, event: &xcb::UnmapNotifyEvent) -> Option<Event> {
+    pub fn on_unmap_notify(&self, event: &xcb::UnmapNotifyEvent) -> Option<Event> {
         if event.event() != self.conn.window_root().get() {
             Some(Event::UnmapNotify(Window(event.window())))
         } else {
@@ -101,7 +101,7 @@ impl<'a> EventLoop<'a> {
         }
     }
 
-    fn on_enter_notify(&self, event: &xcb::EnterNotifyEvent) -> Option<Event> {
+    pub fn on_enter_notify(&self, event: &xcb::EnterNotifyEvent) -> Option<Event> {
         Some(Event::EnterNotify(Window(event.event())))
     }
 }
